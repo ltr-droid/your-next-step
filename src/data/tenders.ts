@@ -39,37 +39,37 @@ const eligibilityBase = (over: Partial<Record<string, RequirementItem["met"]>> =
     id: "e1",
     label: "Certificate of Incorporation",
     detail: "Certified copy of CR14 / CR6 registration documents.",
-    met: over.e1 ?? "met",
+    met: over['e1'] ?? "met",
   },
   {
     id: "e2",
     label: "Valid Tax Clearance (ITF263)",
     detail: "Current ZIMRA tax clearance certificate valid at closing date.",
-    met: over.e2 ?? "met",
+    met: over['e2'] ?? "met",
   },
   {
     id: "e3",
     label: "PRAZ Supplier Registration",
     detail: "Registration under the required supplier category code.",
-    met: over.e3 ?? "met",
+    met: over['e3'] ?? "met",
   },
   {
     id: "e4",
     label: "Three years relevant experience",
     detail: "Reference letters from at least three comparable contracts.",
-    met: over.e4 ?? "partial",
+    met: over['e4'] ?? "partial",
   },
   {
     id: "e5",
     label: "Audited financial statements (2 years)",
     detail: "Signed statements demonstrating financial capacity.",
-    met: over.e5 ?? "met",
+    met: over['e5'] ?? "met",
   },
   {
     id: "e6",
     label: "No conflict of interest declaration",
     detail: "Signed declaration form included in the tender pack.",
-    met: over.e6 ?? "met",
+    met: over['e6'] ?? "met",
   },
 ];
 
@@ -130,8 +130,6 @@ const make = (s: Seed): Tender => {
     preparationEffort: s.preparationEffort ?? "Medium",
     riskLevel: s.riskLevel ?? "Medium",
     ...s,
-    // recomputed after spread so seed cannot break derived fields
-    category: categoryName(s.categoryCode),
   } as Tender;
 };
 
@@ -787,7 +785,7 @@ export const TENDERS: Tender[] = [
     tenderType: "Consultancy",
     status: "Awarded",
     fit: { capability: 52, category: 40, eligibility: 72, documentation: 70, timeline: 40 },
-    fitNotes: { positive: [], caution: ["Tender已 closed — reference only"] },
+    fitNotes: { positive: [], caution: ["Tender closed — reference only"] },
     preparationEffort: "Medium",
     riskLevel: "Medium",
   }),
