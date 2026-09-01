@@ -10,33 +10,141 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentRouteImport } from './routes/agent'
+import { Route as CompanyRouteImport } from './routes/company'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as IntelligenceRouteImport } from './routes/intelligence'
+import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities/index'
+import { Route as OpportunitiesTenderIdRouteImport } from './routes/opportunities/$tenderId'
+import { Route as WorkspacesIndexRouteImport } from './routes/workspaces/index'
+import { Route as WorkspacesTenderIdRouteImport } from './routes/workspaces/$tenderId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentRoute = AgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompanyRoute = CompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntelligenceRoute = IntelligenceRouteImport.update({
+  id: '/intelligence',
+  path: '/intelligence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
+  id: '/opportunities/',
+  path: '/opportunities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpportunitiesTenderIdRoute = OpportunitiesTenderIdRouteImport.update({
+  id: '/opportunities/$tenderId',
+  path: '/opportunities/$tenderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspacesIndexRoute = WorkspacesIndexRouteImport.update({
+  id: '/workspaces/',
+  path: '/workspaces/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspacesTenderIdRoute = WorkspacesTenderIdRouteImport.update({
+  id: '/workspaces/$tenderId',
+  path: '/workspaces/$tenderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agent': typeof AgentRoute
+  '/company': typeof CompanyRoute
+  '/compare': typeof CompareRoute
+  '/intelligence': typeof IntelligenceRoute
+  '/opportunities/$tenderId': typeof OpportunitiesTenderIdRoute
+  '/workspaces/$tenderId': typeof WorkspacesTenderIdRoute
+  '/opportunities/': typeof OpportunitiesIndexRoute
+  '/workspaces/': typeof WorkspacesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agent': typeof AgentRoute
+  '/company': typeof CompanyRoute
+  '/compare': typeof CompareRoute
+  '/intelligence': typeof IntelligenceRoute
+  '/opportunities/$tenderId': typeof OpportunitiesTenderIdRoute
+  '/workspaces/$tenderId': typeof WorkspacesTenderIdRoute
+  '/opportunities': typeof OpportunitiesIndexRoute
+  '/workspaces': typeof WorkspacesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agent': typeof AgentRoute
+  '/company': typeof CompanyRoute
+  '/compare': typeof CompareRoute
+  '/intelligence': typeof IntelligenceRoute
+  '/opportunities/$tenderId': typeof OpportunitiesTenderIdRoute
+  '/workspaces/$tenderId': typeof WorkspacesTenderIdRoute
+  '/opportunities/': typeof OpportunitiesIndexRoute
+  '/workspaces/': typeof WorkspacesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/agent'
+    | '/company'
+    | '/compare'
+    | '/intelligence'
+    | '/opportunities/$tenderId'
+    | '/workspaces/$tenderId'
+    | '/opportunities/'
+    | '/workspaces/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/agent'
+    | '/company'
+    | '/compare'
+    | '/intelligence'
+    | '/opportunities/$tenderId'
+    | '/workspaces/$tenderId'
+    | '/opportunities'
+    | '/workspaces'
+  id:
+    | '__root__'
+    | '/'
+    | '/agent'
+    | '/company'
+    | '/compare'
+    | '/intelligence'
+    | '/opportunities/$tenderId'
+    | '/workspaces/$tenderId'
+    | '/opportunities/'
+    | '/workspaces/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentRoute: typeof AgentRoute
+  CompanyRoute: typeof CompanyRoute
+  CompareRoute: typeof CompareRoute
+  IntelligenceRoute: typeof IntelligenceRoute
+  OpportunitiesTenderIdRoute: typeof OpportunitiesTenderIdRoute
+  WorkspacesTenderIdRoute: typeof WorkspacesTenderIdRoute
+  OpportunitiesIndexRoute: typeof OpportunitiesIndexRoute
+  WorkspacesIndexRoute: typeof WorkspacesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +156,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agent': {
+      id: '/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/company': {
+      id: '/company'
+      path: '/company'
+      fullPath: '/company'
+      preLoaderRoute: typeof CompanyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/intelligence': {
+      id: '/intelligence'
+      path: '/intelligence'
+      fullPath: '/intelligence'
+      preLoaderRoute: typeof IntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opportunities/': {
+      id: '/opportunities/'
+      path: '/opportunities'
+      fullPath: '/opportunities/'
+      preLoaderRoute: typeof OpportunitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opportunities/$tenderId': {
+      id: '/opportunities/$tenderId'
+      path: '/opportunities/$tenderId'
+      fullPath: '/opportunities/$tenderId'
+      preLoaderRoute: typeof OpportunitiesTenderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/': {
+      id: '/workspaces/'
+      path: '/workspaces'
+      fullPath: '/workspaces/'
+      preLoaderRoute: typeof WorkspacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/$tenderId': {
+      id: '/workspaces/$tenderId'
+      path: '/workspaces/$tenderId'
+      fullPath: '/workspaces/$tenderId'
+      preLoaderRoute: typeof WorkspacesTenderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentRoute: AgentRoute,
+  CompanyRoute: CompanyRoute,
+  CompareRoute: CompareRoute,
+  IntelligenceRoute: IntelligenceRoute,
+  OpportunitiesTenderIdRoute: OpportunitiesTenderIdRoute,
+  WorkspacesTenderIdRoute: WorkspacesTenderIdRoute,
+  OpportunitiesIndexRoute: OpportunitiesIndexRoute,
+  WorkspacesIndexRoute: WorkspacesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
