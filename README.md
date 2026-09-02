@@ -21,4 +21,21 @@ git clone <this-repository-url>
 cd <repository-name>
 npm i
 npm run dev
+
+## WebMCP
+
+BidLens exposes five agent-native tools through the browser's WebMCP API when
+document.modelContext is available:
+
+- find_opportunities searches the seeded procurement registry.
+- investigate_opportunity returns fit factors, requirements and document gaps.
+- compare_opportunities compares two or three tenders and recommends one.
+- prepare_bid_workspace creates a workspace after human confirmation.
+- update_bid_workspace changes checklist, document, note or readiness state
+  after human confirmation.
+
+The registration bridge lives in
+src/components/bidlens/webmcp.tsx. Run npm run dev, open the app in
+ChatGPT's in-app browser, or enable WebMCP testing in Chrome at
+chrome://flags/#enable-webmcp-testing.
 ```

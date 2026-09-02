@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, GitCompareArrows, LayoutGrid, Rows3, Search, Sparkles, X } from "lucide-react";
 import { AppShell } from "@/components/bidlens/app-shell";
 import { OpportunityCard } from "@/components/bidlens/opportunity-card";
+import { Pagination } from "@/components/bidlens/pagination";
 import { AnalysisPanel } from "@/components/bidlens/analysis-panel";
 import { Countdown, FitScore, StatusBadge } from "@/components/bidlens/indicators";
 import { Card } from "@/components/ui/card";
@@ -15,19 +16,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CATEGORIES, ENTITIES } from "@/data/entities";
-import { formatDate, formatMoney, LOCATIONS, OPPORTUNITIES, type EnrichedTender } from "@/lib/bidlens";
+import { formatDate, formatMoney, LOCATIONS, rankedOpportunities, type EnrichedTender } from "@/lib/bidlens";
 import { useAppState } from "@/state/app-state";
 
 export const Route = createFileRoute("/opportunities/")({
   head: () => ({
     meta: [
-      { title: "Procurement Opportunities — BidLens" },
+      { title: "Procurement Opportunities - BidLens" },
       {
         name: "description",
         content:
           "Search and filter public procurement opportunities by category, entity, value, location and BidLens fit score.",
       },
-      { property: "og:title", content: "Procurement Opportunities — BidLens" },
+      { property: "og:title", content: "Procurement Opportunities - BidLens" },
       {
         property: "og:description",
         content: "Search, filter and shortlist tenders with fit scoring built for suppliers.",
@@ -38,11 +39,13 @@ export const Route = createFileRoute("/opportunities/")({
 });
 
 const ALL = "__all__";
+const PAGE_SIZE = 9;
 
 type TabKey = "all" | "recommended" | "closing" | "saved" | "analyzed";
 
 function OpportunitiesPage() {
   const { state, isSaved, toggleSave, toggleCompare } = useAppState();
+  const opportunities = rankedOpportunities(state.preferences);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState(ALL);
   const [category, setCategory] = useState(ALL);
@@ -56,10 +59,11 @@ function OpportunitiesPage() {
   const [view, setView] = useState<"cards" | "table">("cards");
   const [analyzing, setAnalyzing] = useState<EnrichedTender | null>(null);
   const [sort, setSort] = useState("fit");
+  const [page, setPage] = useState(1);
 
   const results = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    let list = OPPORTUNITIES.filter((o) => {
+    let list = opportunities.filter((o) => {
       if (needle) {
         const hay = `${o.title} ${o.reference} ${o.entityName} ${o.category} ${o.categoryCode} ${o.description}`.toLowerCase();
         if (!hay.includes(needle)) return false;
@@ -85,7 +89,15 @@ function OpportunitiesPage() {
       return b.publishedOffsetDays - a.publishedOffsetDays;
     });
     return list;
-  }, [q, status, category, entity, location, closingWithin, publishedWithin, minValue, minFit, tab, sort, state.saved, state.analyzed]);
+  }, [q, status, category, entity, location, closingWithin, publishedWithin, minValue, minFit, tab, sort, opportunities, state.saved, state.analyzed]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [q, status, category, entity, location, closingWithin, publishedWithin, minValue, minFit, tab, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageResults = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const resetFilters = () => {
     setQ("");
@@ -97,12 +109,13 @@ function OpportunitiesPage() {
     setPublishedWithin(ALL);
     setMinValue(0);
     setMinFit(0);
+    setPage(1);
   };
 
   return (
     <AppShell
       title="Opportunities"
-      subtitle={`${results.length} of ${OPPORTUNITIES.length} demonstration tenders match your filters`}
+      subtitle={`${results.length} of ${opportunities.length} demonstration tenders match your filters`}
       actions={
         <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
           <Button size="sm" variant={view === "cards" ? "secondary" : "ghost"} onClick={() => setView("cards")}>
@@ -180,7 +193,7 @@ function OpportunitiesPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search keyword, tender reference, entity or category…"
+                placeholder="Search keyword, tender reference, entity or category..."
                 className="pl-9"
               />
             </div>
@@ -220,7 +233,7 @@ function OpportunitiesPage() {
             </Card>
           ) : view === "cards" ? (
             <div className="mt-5 grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-              {results.map((o) => (
+              {pageResults.map((o) => (
                 <OpportunityCard key={o.id} opportunity={o} onAnalyze={setAnalyzing} />
               ))}
             </div>
@@ -242,7 +255,7 @@ function OpportunitiesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {results.map((o) => (
+                  {pageResults.map((o) => (
                     <TableRow key={o.id}>
                       <TableCell className="mono-ref text-xs text-muted-foreground">{o.reference}</TableCell>
                       <TableCell className="max-w-[260px]">
@@ -302,6 +315,7 @@ function OpportunitiesPage() {
               </Table>
             </Card>
           )}
+          <Pagination page={currentPage} pageSize={PAGE_SIZE} total={results.length} onPageChange={setPage} />
         </div>
       </div>
 

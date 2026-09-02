@@ -1,8 +1,9 @@
+import { COMPANY } from "@/data/company";
 import { TENDERS } from "@/data/tenders";
 import { ENTITIES, entityById } from "@/data/entities";
-import type { FitBreakdown, Tender, TenderStatus } from "@/data/types";
+import type { CompanyProfile, FitBreakdown, Tender, TenderStatus } from "@/data/types";
 
-/** Stable "today" for the prototype — evaluated once per session. */
+/** Stable "today" for the prototype - evaluated once per session. */
 export const NOW = new Date();
 
 export function dateFromOffset(days: number): Date {
@@ -13,7 +14,7 @@ export function dateFromOffset(days: number): Date {
 }
 
 export function formatDate(d: Date): string {
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", yyyy: undefined, year: "numeric" } as Intl.DateTimeFormatOptions);
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function formatMoney(value: number | null): string {
@@ -60,11 +61,38 @@ export function recommendationFor(score: number): Recommendation {
   return "Do Not Pursue";
 }
 
-export function enrich(t: Tender): EnrichedTender {
+function preferenceAdjustment(t: Tender, preferences: CompanyProfile["preferences"]): number {
+  let adjustment = 0;
+  const categoryName = t.category.toLowerCase();
+  const preferredCategories = preferences.preferredCategories.map((c) => c.toLowerCase());
+  const preferredLocations = preferences.preferredLocations.map((l) => l.toLowerCase());
+  const excludedCategories = preferences.excludedCategories.map((c) => c.toLowerCase());
+
+  if (preferredCategories.includes(categoryName)) adjustment += 6;
+  if (excludedCategories.includes(categoryName)) adjustment -= 20;
+  if (preferredLocations.some((loc) => t.location.toLowerCase().includes(loc))) adjustment += 3;
+
+  if (t.estimatedValue !== null) {
+    if (t.estimatedValue >= preferences.minValue && t.estimatedValue <= preferences.maxValue) adjustment += 5;
+    if (t.estimatedValue > preferences.maxValue) adjustment -= 4;
+    if (t.estimatedValue < preferences.minValue / 2) adjustment -= 2;
+  }
+
+  if (t.closingOffsetDays >= preferences.minLeadTimeDays) adjustment += 4;
+  if (t.closingOffsetDays < preferences.minLeadTimeDays) adjustment -= 5;
+
+  return adjustment;
+}
+
+export function scoreOpportunity(t: Tender, preferences: CompanyProfile["preferences"] = COMPANY.preferences): number {
+  return Math.max(0, Math.min(100, fitScore(t.fit) + preferenceAdjustment(t, preferences)));
+}
+
+export function enrich(t: Tender, preferences: CompanyProfile["preferences"] = COMPANY.preferences): EnrichedTender {
   const published = dateFromOffset(t.publishedOffsetDays);
   const closing = dateFromOffset(t.closingOffsetDays);
   const daysRemaining = t.closingOffsetDays;
-  const score = fitScore(t.fit);
+  const score = scoreOpportunity(t, preferences);
   const urgency = urgencyOf(daysRemaining);
   const entity = entityById(t.entityId);
   const displayStatus: TenderStatus =
@@ -83,11 +111,17 @@ export function enrich(t: Tender): EnrichedTender {
   };
 }
 
-export const OPPORTUNITIES: EnrichedTender[] = TENDERS.map(enrich).sort((a, b) => b.score - a.score);
+export const OPPORTUNITIES: EnrichedTender[] = TENDERS.map((t) => enrich(t)).sort((a, b) => b.score - a.score);
 
-export const opportunityById = (id: string) => OPPORTUNITIES.find((o) => o.id === id);
+export function rankedOpportunities(preferences: CompanyProfile["preferences"] = COMPANY.preferences): EnrichedTender[] {
+  return TENDERS.map((t) => enrich(t, preferences)).sort((a, b) => b.score - a.score);
+}
 
-export const openOpportunities = () => OPPORTUNITIES.filter((o) => o.daysRemaining >= 0 && o.status === "Open");
+export const opportunityById = (id: string, preferences: CompanyProfile["preferences"] = COMPANY.preferences) =>
+  rankedOpportunities(preferences).find((o) => o.id === id);
+
+export const openOpportunities = (preferences: CompanyProfile["preferences"] = COMPANY.preferences) =>
+  rankedOpportunities(preferences).filter((o) => o.daysRemaining >= 0 && o.status === "Open");
 
 export const missingRequirements = (t: Tender) =>
   [...t.eligibility, ...t.technical].filter((r) => r.met !== "met");
@@ -125,28 +159,28 @@ export const fitFactors = (t: Tender): { key: keyof FitBreakdown; label: string;
   },
 ];
 
-export const categoryCounts = () => {
+export const categoryCounts = (preferences: CompanyProfile["preferences"] = COMPANY.preferences) => {
   const map = new Map<string, number>();
-  openOpportunities().forEach((o) => map.set(o.category, (map.get(o.category) ?? 0) + 1));
+  openOpportunities(preferences).forEach((o) => map.set(o.category, (map.get(o.category) ?? 0) + 1));
   return [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 };
 
-export const entityCounts = () => {
+export const entityCounts = (preferences: CompanyProfile["preferences"] = COMPANY.preferences) => {
   const map = new Map<string, number>();
-  openOpportunities().forEach((o) => map.set(o.entityName, (map.get(o.entityName) ?? 0) + 1));
+  openOpportunities(preferences).forEach((o) => map.set(o.entityName, (map.get(o.entityName) ?? 0) + 1));
   return [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 };
 
-export const valueBands = () => {
+export const valueBands = (preferences: CompanyProfile["preferences"] = COMPANY.preferences) => {
   const bands = [
     { name: "< $50k", min: 0, max: 50000 },
-    { name: "$50k–150k", min: 50000, max: 150000 },
-    { name: "$150k–300k", min: 150000, max: 300000 },
+    { name: "$50k-$150k", min: 50000, max: 150000 },
+    { name: "$150k-$300k", min: 150000, max: 300000 },
     { name: "> $300k", min: 300000, max: Infinity },
   ];
   return bands.map((b) => ({
     name: b.name,
-    count: openOpportunities().filter((o) => o.estimatedValue !== null && o.estimatedValue >= b.min && o.estimatedValue < b.max).length,
+    count: openOpportunities(preferences).filter((o) => o.estimatedValue !== null && o.estimatedValue >= b.min && o.estimatedValue < b.max).length,
   }));
 };
 

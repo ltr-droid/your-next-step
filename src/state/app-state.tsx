@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { opportunityById, OPPORTUNITIES, type EnrichedTender } from "@/lib/bidlens";
+import { COMPANY } from "@/data/company";
 import type { Tender } from "@/data/types";
 
 export type ChecklistStatus = "complete" | "incomplete" | "not_applicable";
@@ -33,6 +34,7 @@ type Persisted = {
   compare: string[];
   workspaces: Record<string, Workspace>;
   activity: { id: string; text: string; at: string; actor: "human" | "agent" }[];
+  preferences: typeof COMPANY.preferences;
 };
 
 const KEY = "bidlens.state.v1";
@@ -102,6 +104,7 @@ function seedState(): Persisted {
       { id: "ac1", text: "Bid workspace created for ZPC/DOM/59/2026", at: new Date().toISOString(), actor: "human" },
       { id: "ac2", text: "Analysis completed for MHTESTD/PROC/28/2026", at: new Date().toISOString(), actor: "agent" },
     ],
+    preferences: COMPANY.preferences,
   };
 }
 
@@ -121,6 +124,7 @@ type Ctx = {
   addClarification: (id: string, question: string) => void;
   setNotes: (id: string, notes: string) => void;
   setReady: (id: string, ready: boolean) => void;
+  setPreferences: (preferences: typeof COMPANY.preferences) => void;
   readiness: (id: string) => number;
   log: (text: string, actor?: "human" | "agent") => void;
 };
@@ -134,7 +138,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setState(JSON.parse(raw) as Persisted);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<Persisted>;
+        setState({
+          ...seedState(),
+          ...parsed,
+          preferences: parsed.preferences ?? seedState().preferences,
+        });
+      }
     } catch {
       /* ignore corrupt state */
     }
@@ -220,6 +231,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         })),
       setNotes: (id, notes) => updateWorkspace(id, (w) => ({ ...w, notes })),
       setReady: (id, ready) => updateWorkspace(id, (w) => ({ ...w, readyForSubmission: ready })),
+      setPreferences: (preferences) => setState((s) => ({ ...s, preferences })),
       readiness: (id) => {
         const w = state.workspaces[id];
         if (!w) return 0;

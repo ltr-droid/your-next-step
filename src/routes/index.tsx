@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ElementType } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bookmark, Briefcase, Flame, Sparkles, Target, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/bidlens/app-shell";
@@ -24,13 +24,13 @@ import { COMPANY } from "@/data/company";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BidLens Dashboard — Procurement Intelligence for Suppliers" },
+      { title: "BidLens Dashboard - Procurement Intelligence for Suppliers" },
       {
         name: "description",
         content:
           "See which public procurement opportunities to bid on: fit scores, deadlines and bid readiness in one supplier dashboard.",
       },
-      { property: "og:title", content: "BidLens Dashboard — Procurement Intelligence for Suppliers" },
+      { property: "og:title", content: "BidLens Dashboard - Procurement Intelligence for Suppliers" },
       {
         property: "og:description",
         content: "Discover, analyze and prepare public procurement bids with fit scoring and compliance tracking.",
@@ -48,7 +48,7 @@ function MetricCard({
 }: {
   label: string;
   value: number | string;
-  icon: React.ElementType;
+  icon: ElementType;
   hint?: string;
 }) {
   return (
@@ -90,9 +90,9 @@ function BarList({ data, unit = "" }: { data: { name: string; count: number }[];
 }
 
 function Dashboard() {
-  const { state, workspaceFor } = useAppState();
+  const { state } = useAppState();
   const [analyzing, setAnalyzing] = useState<EnrichedTender | null>(null);
-  const open = openOpportunities();
+  const open = openOpportunities(state.preferences);
   const relevant = open.filter((o) => o.score >= 55);
   const closingWeek = open.filter((o) => o.daysRemaining <= 7);
   const highFit = open.filter((o) => o.score >= 85);
@@ -193,7 +193,7 @@ function Dashboard() {
           <div className="mt-4 space-y-3">
             {Object.keys(state.workspaces).length === 0 && (
               <p className="rounded-md border border-dashed border-border p-4 text-xs text-muted-foreground">
-                No bid workspaces yet. Analyze an opportunity and choose “Prepare Bid”.
+                No bid workspaces yet. Analyze an opportunity and choose "Prepare Bid".
               </p>
             )}
             {Object.values(state.workspaces).map((w) => {
@@ -212,19 +212,19 @@ function Dashboard() {
             <h3 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               Opportunities by category
             </h3>
-            <BarList data={categoryCounts().slice(0, 6)} />
+            <BarList data={categoryCounts(state.preferences).slice(0, 6)} />
           </Card>
           <Card className="p-5">
             <h3 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               Opportunities by entity
             </h3>
-            <BarList data={entityCounts().slice(0, 6)} />
+            <BarList data={entityCounts(state.preferences).slice(0, 6)} />
           </Card>
           <Card className="p-5">
             <h3 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               Value distribution
             </h3>
-            <BarList data={valueBands()} />
+            <BarList data={valueBands(state.preferences)} />
           </Card>
           <Card className="p-5">
             <h3 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Recent awards</h3>
@@ -248,7 +248,7 @@ function Dashboard() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">This workspace is agent-operable</h3>
             <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-              Every workflow on this dashboard — discovery, investigation, comparison and bid preparation — is exposed
+              Every workflow on this dashboard - discovery, investigation, comparison and bid preparation - is exposed
               as a high-level structured capability an AI agent can call, with human approval required for any change
               of state.
             </p>
